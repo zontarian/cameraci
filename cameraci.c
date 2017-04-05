@@ -1266,11 +1266,38 @@ int raspistill_init(RASPISTILLYUV_STATE *state) {
         return mmal_status_to_int(status);
     }
 
+    //extra
+    if (mmal_status_to_int(
+            mmal_port_parameter_set_uint32(state->camera_component->control, MMAL_PARAMETER_SHUTTER_SPEED,
+                                           state->camera_parameters.shutter_speed) != MMAL_SUCCESS))
+        vcos_log_error("Unable to set shutter speed");
+
+    // Send all the buffers to the camera output port
+    int num = mmal_queue_length(state->camera_pool->queue);
+    int q;
+    for (q = 0; q < num; q++) {
+        MMAL_BUFFER_HEADER_T *buffer = mmal_queue_get(state->camera_pool->queue);
+
+        if (!buffer)
+            vcos_log_error("Unable to get a required buffer %d from pool queue", q);
+
+        if (mmal_port_send_buffer(camera_still_port, buffer) != MMAL_SUCCESS)
+            vcos_log_error("Unable to send a buffer to camera output port (%d)", q);
+    }
+
 
     return mmal_status_to_int(MMAL_SUCCESS);
 }
 
-void rapistill_get_actual_capture_size(RASPISTILLYUV_STATE *state, int *width, int *height) {
+/**
+ * Use this to determine the actual dimension of the image returned by the camera.
+ * Usually is a suitable format, or identical (if you know the formats the camera use)
+ * or one slightly larger than the one you requested.
+ * @param state pointer to a RASPISTILLYUV_STATE struct
+ * @param width pointer to an int where the width will be stored. If -1 then there was some error
+ * @param height pointer to an int where the height will be stored. If -1 then there was some error
+ */
+void raspistill_get_actual_capture_size(RASPISTILLYUV_STATE *state, int *width, int *height) {
     MMAL_PORT_T *camera_still_port = NULL;
     camera_still_port = state->camera_component->output[MMAL_CAMERA_CAPTURE_PORT];
     if (camera_still_port) {
@@ -1282,13 +1309,25 @@ void rapistill_get_actual_capture_size(RASPISTILLYUV_STATE *state, int *width, i
     }
 }
 
-
+/**
+ * Actual capture of a still image. The resulting image will be stored in the buffer provided.
+ * Please ensure that the buffer can hold enought data.
+ * To determine the minimum buffer size:
+ * call raspistill_get_actual_capture_size()
+ * then the minimum buffer size is:
+ * - for RGB : 3 x width x height
+ * - for Luma: 1 x width x height
+ *
+ * @param state pointer to a RASPISTILLYUV_STATE struct
+ * @param dest_buffer pointer to an allocated void/char buffer
+ * @return 0 on success, or an error code
+ */
 int raspistill_capture(RASPISTILLYUV_STATE *state, void *dest_buffer) {
 
     MMAL_PORT_T *camera_still_port = NULL;
     camera_still_port = state->camera_component->output[MMAL_CAMERA_CAPTURE_PORT];
 
-    //clean up storage
+    //clean up shared storage
     callback_data.file_handle = NULL;
     callback_data.pstate = state;
     callback_data.buffer = dest_buffer;
@@ -1298,7 +1337,7 @@ int raspistill_capture(RASPISTILLYUV_STATE *state, void *dest_buffer) {
     vcos_status = vcos_semaphore_create(&callback_data.complete_semaphore, "RaspiStill-sem", 0);
     vcos_assert(vcos_status == VCOS_SUCCESS);
 
-    camera_still_port->userdata = (struct MMAL_PORT_USERDATA_T *) &callback_data;
+    camera_still_port->userdata = (PORT_USERDATA *) &callback_data;
 
     if (state->verbose)
         fprintf(stderr, "Starting video preview\n");
@@ -1307,24 +1346,24 @@ int raspistill_capture(RASPISTILLYUV_STATE *state, void *dest_buffer) {
     //start capture
 
     // There is a possibility that shutter needs to be set each loop.
-    if (mmal_status_to_int(
-            mmal_port_parameter_set_uint32(state->camera_component->control, MMAL_PARAMETER_SHUTTER_SPEED,
-                                           state->camera_parameters.shutter_speed) != MMAL_SUCCESS))
-        vcos_log_error("Unable to set shutter speed");
+//    if (mmal_status_to_int(
+//            mmal_port_parameter_set_uint32(state->camera_component->control, MMAL_PARAMETER_SHUTTER_SPEED,
+//                                           state->camera_parameters.shutter_speed) != MMAL_SUCCESS))
+//        vcos_log_error("Unable to set shutter speed");
 
 
-    // Send all the buffers to the camera output port
-    num = mmal_queue_length(state->camera_pool->queue);
-
-    for (q = 0; q < num; q++) {
-        MMAL_BUFFER_HEADER_T *buffer = mmal_queue_get(state->camera_pool->queue);
-
-        if (!buffer)
-            vcos_log_error("Unable to get a required buffer %d from pool queue", q);
-
-        if (mmal_port_send_buffer(camera_still_port, buffer) != MMAL_SUCCESS)
-            vcos_log_error("Unable to send a buffer to camera output port (%d)", q);
-    }
+//    // Send all the buffers to the camera output port
+//    num = mmal_queue_length(state->camera_pool->queue);
+//
+//    for (q = 0; q < num; q++) {
+//        MMAL_BUFFER_HEADER_T *buffer = mmal_queue_get(state->camera_pool->queue);
+//
+//        if (!buffer)
+//            vcos_log_error("Unable to get a required buffer %d from pool queue", q);
+//
+//        if (mmal_port_send_buffer(camera_still_port, buffer) != MMAL_SUCCESS)
+//            vcos_log_error("Unable to send a buffer to camera output port (%d)", q);
+//    }
 
 
     if (state->verbose)

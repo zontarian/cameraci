@@ -25,7 +25,7 @@ void intHandler(int dummy) {
 int main(int argc, const char **argv){
 
     RASPISTILLYUV_STATE *state=raspistill_create_status();
-    printf("here\n");
+    printf("\nTesting cameraci module\n");
     MMAL_STATUS_T status = MMAL_SUCCESS;
     int exit_code = EX_OK;
 
@@ -46,7 +46,7 @@ int main(int argc, const char **argv){
 
         int _w=0;
         int _h=0;
-        rapistill_get_actual_capture_size(state, &_w, &_h);
+        raspistill_get_actual_capture_size(state, &_w, &_h);
         printf( "camera_still_port dimensions as reported from camera port: %dx%d\n", _w, _h);
         W=_w;
         H=_h;
@@ -66,11 +66,21 @@ int main(int argc, const char **argv){
             int status=raspistill_capture(state, buffer);
             if(status!=0){
                 printf("Error from capture %d\n", status);
+            }else{
+                //test by printing sample lines. Should not be all zeros
+                int r=100;
+                int c=0;
+                // comment this double loop to have no clutter
+//                for (r=100;r<102;r++){
+//                    for(c=0;c<W;c++)
+//                        printf("%02x ",buffer[r*W+c]);
+//                    printf("\n");
+//                }
             }
 
             double elapsed = time_in_millis();
             if(elapsed - sample_start > 5000){
-                printf("%d frames in %.1f ms: %f fps\n",i,(elapsed-sample_start),(float)count/(elapsed-sample_start)*1000);
+                printf("%d frames in %.1f ms: %f fps\n",count,(elapsed-sample_start),(float)count/(elapsed-sample_start)*1000);
                 sample_start = elapsed;
                 count = 0;
             }

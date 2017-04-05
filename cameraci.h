@@ -49,7 +49,7 @@ typedef struct
 
 RASPISTILLYUV_STATE *raspistill_create_status();
 int raspistill_init(RASPISTILLYUV_STATE *state);
-void rapistill_get_actual_capture_size(RASPISTILLYUV_STATE *state, int *width, int *height);
+void raspistill_get_actual_capture_size(RASPISTILLYUV_STATE *state, int *width, int *height);
 int raspistill_capture(RASPISTILLYUV_STATE *state, void *dest_buffer);
 int raspistill_tear_down(RASPISTILLYUV_STATE *state, int status);
 
