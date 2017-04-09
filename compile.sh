@@ -8,12 +8,15 @@ gcc -I . -fPIC -g -w -march=armv6 -mfpu=vfp -mfloat-abi=hard \
     -isystem /opt/vc/include/interface/vcos/pthreads/ \
     -isystem /opt/vc/include/interface/vmcs_host/linux/ \
     -L /opt/vc/lib -lbcm_host -lmmal -lvcos -lpthread -lmmal_core -lmmal_util  \
-   RaspiCLI.c RaspiPreview.c RaspiCamControl.c cameraci.c  cameraci_control.c -o cameraci_control
+   RaspiCLI.c RaspiPreview.c RaspiCamControl.c \
+    videoci.c videoci_control.c -o videoci_control
+
+#   cameraci.c   cameraci_control.c -o cameraci_control
 
 #
 # raspistill --width 400 --height 280 -n -o test.jpg
 #
 
 if [ $? -eq 0 ] ; then
-    sudo ./cameraci_control
+    sudo ./videoci_control
 fi
