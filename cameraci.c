@@ -1148,7 +1148,6 @@ static void rename_file(RASPISTILLYUV_STATE *state, FILE *output_file,
 RASPISTILLYUV_STATE *raspistill_create_status() {
     RASPISTILLYUV_STATE *state = malloc(sizeof(RASPISTILLYUV_STATE));
     int d = sizeof(RASPISTILLYUV_STATE);
-    RASPI_LOG("SIZEOF RASPISTRUCTYUV is ", d);
     default_status(state);
 
     //set default params
