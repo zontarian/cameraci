@@ -1,5 +1,7 @@
-# cameraci
+# cameraci/videoci
 Simple "C" module to get a memory buffer holding the RGB/YUV data of still images from the camera of the RaspberryPi. The module has two interfaces, `cameraci` for single pics or very slow video, and `videoci` which is somehow fast and on my PiZero reaches above 10fps with some image processing.
+
+See the pun in the names? Like cameraPy but for "C" (which is pronounced "chee" in italian). Ain't it terrbile?
 
 # dependencies
 This "library" is a simple rewriting of RaspiStillYUV.c, reorganizing calls so as to be simply embeddable in another program, even in a loop. The file is "cameraci.c" and "cameraci.h" holds the interface.
