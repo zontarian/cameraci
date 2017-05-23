@@ -5,8 +5,9 @@
 
 void main(int argc, const char **argv){
     //test
-    RASPIVIDYUV_STATE *state=raspivideo_create_status();
     printf("\nTesting videoci module\n");
+    RASPIVIDYUV_STATE *state=raspivideo_create_status();
+
     MMAL_STATUS_T status = MMAL_SUCCESS;
     int exit_code = 0;
 
